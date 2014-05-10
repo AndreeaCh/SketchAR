@@ -201,9 +201,45 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 		mActivity.refFreeFrame.render();
 
 		// Did we find any trackables this frame?
-		for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++) {
+		int numTrackableResults = state.getNumTrackableResults();
+		for (int tIdx = 0; tIdx < numTrackableResults; tIdx++) {
 			// Get the trackable:
 			TrackableResult trackableResult = state.getTrackableResult(tIdx);
+			// Check the type of the trackable:
+			if (trackableResult instanceof MarkerResult) {
+				MarkerResult markerResult = (MarkerResult) (trackableResult);
+				Marker marker = (Marker) markerResult.getTrackable();
+				Matrix44F modelViewMatrix_Marker;
+				float[] data ;
+				float[] data2;
+				switch(marker.getMarkerId()){
+				case 0:
+					modelViewMatrix_Marker = Tool.convertPose2GLMatrix(trackableResult.getPose());	
+					data2 = modelViewMatrix_Marker.getData();
+				    data = modelViewMatrix.getData();
+					data[12]=data2[12];
+					data[13]=data2[13];
+					data[14]=data2[14];
+					modelViewMatrix.setData(data);
+					break;
+				case 5:
+					modelViewMatrix_Marker = Tool.convertPose2GLMatrix(trackableResult.getPose());		
+					data2 = modelViewMatrix_Marker.getData();
+					data = modelViewMatrix.getData();
+					data[0]=data2[0];
+					data[1]=data2[1];
+					data[2]=data2[2];
+					data[4]=data2[4];
+					data[5]=data2[5];
+					data[6]=data2[6];
+					data[8]=data2[8];
+					data[9]=data2[9];
+					data[10]=data2[10];
+					modelViewMatrix.setData(data);
+					break;
+				}
+			}
+
 			// Get the model view matrix
 			/*
 			 * modelViewMatrix = Tool.convertPose2GLMatrix(trackableResult
@@ -221,14 +257,14 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 			 */
 
 		}
-		renderShape();
+		renderShapeInSceenCenter();
 		GLES20.glDisable(GLES20.GL_CULL_FACE);
 		GLES20.glDisable(GLES20.GL_DEPTH_TEST);
 		// GLES20.glDisable(GLES20.GL_BLEND);
 		Renderer.getInstance().end();
 	}
 
-	private void renderShape() {
+	private void renderShapeInSceenCenter() {
 		// Assumptions:
 		assert (textureIndex < mTextures.size());
 		Texture thisTexture = mTextures.get(textureIndex);

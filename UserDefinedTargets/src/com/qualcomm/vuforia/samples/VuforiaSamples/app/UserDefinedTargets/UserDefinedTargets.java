@@ -84,11 +84,11 @@ public class UserDefinedTargets extends Activity implements
 
 	int targetBuilderCounter = 1;
 
-	DataSet dataSetUserDef = null;/*
-	*//**
-	 * The markers used by the app
-	 *//*
-	private Marker[] dataSet;*/
+	DataSet dataSetUserDef = null;
+	/*
+	 * * The markers used by the app
+	 */
+	private Marker[] dataSet;
 	private GestureDetector mGestureDetector;
 
 	private SampleAppMenu mSampleAppMenu;
@@ -140,7 +140,6 @@ public class UserDefinedTargets extends Activity implements
 
 		mIsDroidDevice = android.os.Build.MODEL.toLowerCase().startsWith(
 				"droid");
-		// startBuild();
 	}
 
 	// Process Single Tap event to trigger autofocus
@@ -366,7 +365,7 @@ public class UserDefinedTargets extends Activity implements
 		startUserDefinedTargets();
 		initializeBuildTargetModeViews();
 
-		mUILayout.bringToFront();			
+		mUILayout.bringToFront();
 
 	}
 
@@ -510,7 +509,29 @@ public class UserDefinedTargets extends Activity implements
 			Log.d(LOGTAG, "Successfully initialized ImageTracker.");
 		}
 
+		return result&&doInitMarkerTrackers();
+	}
+
+	private boolean doInitMarkerTrackers() {
+		// Indicate if the trackers were initialized correctly
+		boolean result = true;
+
+		// Initialize the marker tracker:
+		TrackerManager trackerManager = TrackerManager.getInstance();
+		Tracker trackerBase = trackerManager.initTracker(MarkerTracker
+				.getClassType());
+		MarkerTracker markerTracker = (MarkerTracker) (trackerBase);
+
+		if (markerTracker == null) {
+			Log.e(LOGTAG,
+					"Tracker not initialized. Tracker already initialized or the camera is already started");
+			result = false;
+		} else {
+			Log.i(LOGTAG, "Tracker successfully initialized");
+		}
+
 		return result;
+
 	}
 
 	@Override
@@ -524,7 +545,6 @@ public class UserDefinedTargets extends Activity implements
 					"Failed to load tracking data set because the ImageTracker has not been initialized.");
 			return false;
 		}
-
 		// Create the data set:
 		dataSetUserDef = imageTracker.createDataSet();
 		if (dataSetUserDef == null) {
@@ -538,6 +558,31 @@ public class UserDefinedTargets extends Activity implements
 		}
 
 		Log.d(LOGTAG, "Successfully loaded and activated data set.");
+		return true && createMarkersDataSet();
+	}
+
+	private boolean createMarkersDataSet() {
+		TrackerManager tManager = TrackerManager.getInstance();
+		MarkerTracker markerTracker = (MarkerTracker) tManager
+				.getTracker(MarkerTracker.getClassType());
+		if (markerTracker == null) {
+			return false;
+		}
+		dataSet = new Marker[2];
+
+		dataSet[0] = markerTracker.createFrameMarker(5, "MarkerRotation",
+				new Vec2F(50, 50));		
+		if (dataSet[0] == null) {
+			Log.e(LOGTAG, "Failed to create frame marker Rotation.");
+			return false;
+		}
+		
+		dataSet[1] = markerTracker.createFrameMarker(0, "MarkerTranslation",
+				new Vec2F(50, 50));		
+		if (dataSet[1] == null) {
+			Log.e(LOGTAG, "Failed to create frame marker Rotation.");
+			return false;
+		}
 		return true;
 	}
 
@@ -551,6 +596,19 @@ public class UserDefinedTargets extends Activity implements
 		if (imageTracker != null)
 			imageTracker.start();
 
+		return result && doStartMarkerTrackers();
+	}
+
+	private boolean doStartMarkerTrackers() {
+		// Indicate if the trackers were started correctly
+		boolean result = true;
+
+		TrackerManager tManager = TrackerManager.getInstance();
+		MarkerTracker markerTracker = (MarkerTracker) tManager
+				.getTracker(MarkerTracker.getClassType());
+		if (markerTracker != null)
+			markerTracker.start();
+
 		return result;
 	}
 
@@ -563,6 +621,19 @@ public class UserDefinedTargets extends Activity implements
 				ImageTracker.getClassType());
 		if (imageTracker != null)
 			imageTracker.stop();
+
+		return result && doStopMarkerTrackers();
+	}
+
+	private boolean doStopMarkerTrackers() {
+		// Indicate if the trackers were stopped correctly
+		boolean result = true;
+
+		TrackerManager tManager = TrackerManager.getInstance();
+		MarkerTracker markerTracker = (MarkerTracker) tManager
+				.getTracker(MarkerTracker.getClassType());
+		if (markerTracker != null)
+			markerTracker.stop();
 
 		return result;
 	}
@@ -613,6 +684,7 @@ public class UserDefinedTargets extends Activity implements
 		TrackerManager tManager = TrackerManager.getInstance();
 		tManager.deinitTracker(ImageTracker.getClassType());
 
+		tManager.deinitTracker(MarkerTracker.getClassType());
 		return result;
 	}
 
