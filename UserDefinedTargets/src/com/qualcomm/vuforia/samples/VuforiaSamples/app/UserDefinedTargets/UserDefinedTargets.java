@@ -366,7 +366,7 @@ public class UserDefinedTargets extends Activity implements
 		startUserDefinedTargets();
 		initializeBuildTargetModeViews();
 
-		mUILayout.bringToFront();
+		mUILayout.bringToFront();			
 
 	}
 

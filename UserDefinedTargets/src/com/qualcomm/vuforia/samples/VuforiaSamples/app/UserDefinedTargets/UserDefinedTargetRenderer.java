@@ -45,7 +45,6 @@ import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.CubeObject;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.CubeShaders;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LineShaders;
-import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleMath;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleUtils;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.Texture;
 
@@ -211,64 +210,67 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 			 * .getPose());
 			 */
 			// Check the type of the trackable:
-			assert (trackableResult.getType() == MarkerTracker.getClassType());
-			MarkerResult markerResult = (MarkerResult) (trackableResult);
-			Marker marker = (Marker) markerResult.getTrackable();
-
-			switch (marker.getMarkerId()) {
-			case 0:
-				renderButtons(trackableResult);
-			}
-
-			// Assumptions:
-			assert (textureIndex < mTextures.size());
-			Texture thisTexture = mTextures.get(textureIndex);
-
 			/*
-			  Matrix44F modelViewMatrix_Vuforia = Tool
-			 .convertPose2GLMatrix(trackableResult.getPose());
+			 * assert (trackableResult.getType() ==
+			 * MarkerTracker.getClassType()); MarkerResult markerResult =
+			 * (MarkerResult) (trackableResult); Marker marker = (Marker)
+			 * markerResult.getTrackable();
+			 * 
+			 * switch (marker.getMarkerId()) { case 0:
+			 * renderButtons(trackableResult); }
 			 */
-			float[] modelViewMatrix = this.modelViewMatrix.getData();
 
-			float[] modelViewProjection = new float[16];
-			Matrix.translateM(modelViewMatrix, 0, 0.0f, 0.0f, kObjectScale);
-			Matrix.scaleM(modelViewMatrix, 0, kObjectScale, kObjectScale,
-					kObjectScale);
-			Matrix.multiplyMM(modelViewProjection, 0, vuforiaAppSession
-					.getProjectionMatrix().getData(), 0, modelViewMatrix, 0);
-
-			GLES20.glUseProgram(shaderProgramID);
-
-			GLES20.glVertexAttribPointer(vertexHandle, 3, GLES20.GL_FLOAT,
-					false, 0, cubeObject.getVertices());
-			GLES20.glVertexAttribPointer(normalHandle, 3, GLES20.GL_FLOAT,
-					false, 0, cubeObject.getNormals());
-			GLES20.glVertexAttribPointer(textureCoordHandle, 2,
-					GLES20.GL_FLOAT, false, 0, cubeObject.getTexCoords());
-			GLES20.glEnableVertexAttribArray(vertexHandle);
-			GLES20.glEnableVertexAttribArray(normalHandle);
-			GLES20.glEnableVertexAttribArray(textureCoordHandle);
-			GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-					thisTexture.mTextureID[0]);
-			GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false,
-					modelViewProjection, 0);
-			GLES20.glUniform1i(texSampler2DHandle, 0);
-			GLES20.glDrawElements(GLES20.GL_TRIANGLES,
-					cubeObject.getNumObjectIndex(), GLES20.GL_UNSIGNED_SHORT,
-					cubeObject.getIndices());
-
-			GLES20.glDisableVertexAttribArray(vertexHandle);
-			GLES20.glDisableVertexAttribArray(normalHandle);
-			GLES20.glDisableVertexAttribArray(textureCoordHandle);
-
-			SampleUtils.checkGLError("UserDefinedTargets renderFrame");
 		}
-
+		renderShape();
 		GLES20.glDisable(GLES20.GL_CULL_FACE);
 		GLES20.glDisable(GLES20.GL_DEPTH_TEST);
 		// GLES20.glDisable(GLES20.GL_BLEND);
 		Renderer.getInstance().end();
+	}
+
+	private void renderShape() {
+		// Assumptions:
+		assert (textureIndex < mTextures.size());
+		Texture thisTexture = mTextures.get(textureIndex);
+
+		/*
+		 * Matrix44F modelViewMatrix_Vuforia = Tool
+		 * .convertPose2GLMatrix(trackableResult.getPose());
+		 */
+		float[] modelViewMatrix = this.modelViewMatrix.getData();
+
+		float[] modelViewProjection = new float[16];
+		Matrix.translateM(modelViewMatrix, 0, 0.0f, 0.0f, kObjectScale);
+		Matrix.scaleM(modelViewMatrix, 0, kObjectScale, kObjectScale,
+				kObjectScale);
+		Matrix.multiplyMM(modelViewProjection, 0, vuforiaAppSession
+				.getProjectionMatrix().getData(), 0, modelViewMatrix, 0);
+
+		GLES20.glUseProgram(shaderProgramID);
+
+		GLES20.glVertexAttribPointer(vertexHandle, 3, GLES20.GL_FLOAT, false,
+				0, cubeObject.getVertices());
+		GLES20.glVertexAttribPointer(normalHandle, 3, GLES20.GL_FLOAT, false,
+				0, cubeObject.getNormals());
+		GLES20.glVertexAttribPointer(textureCoordHandle, 2, GLES20.GL_FLOAT,
+				false, 0, cubeObject.getTexCoords());
+		GLES20.glEnableVertexAttribArray(vertexHandle);
+		GLES20.glEnableVertexAttribArray(normalHandle);
+		GLES20.glEnableVertexAttribArray(textureCoordHandle);
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, thisTexture.mTextureID[0]);
+		GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false,
+				modelViewProjection, 0);
+		GLES20.glUniform1i(texSampler2DHandle, 0);
+		GLES20.glDrawElements(GLES20.GL_TRIANGLES,
+				cubeObject.getNumObjectIndex(), GLES20.GL_UNSIGNED_SHORT,
+				cubeObject.getIndices());
+
+		GLES20.glDisableVertexAttribArray(vertexHandle);
+		GLES20.glDisableVertexAttribArray(normalHandle);
+		GLES20.glDisableVertexAttribArray(textureCoordHandle);
+
+		SampleUtils.checkGLError("UserDefinedTargets renderFrame");
 	}
 
 	private void renderButtons(TrackableResult trackableResult) {
