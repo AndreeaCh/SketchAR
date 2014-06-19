@@ -44,8 +44,10 @@ import com.qualcomm.vuforia.VirtualButtonResult;
 import com.qualcomm.vuforia.samples.SampleApplication.SampleApplicationSession;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.CubeObject;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.CubeShaders;
+import com.qualcomm.vuforia.samples.SampleApplication.utils.Line;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.LineShaders;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.SampleUtils;
+import com.qualcomm.vuforia.samples.SampleApplication.utils.Scene;
 import com.qualcomm.vuforia.samples.SampleApplication.utils.Texture;
 
 // The renderer class for the ImageTargetsBuilder sample. 
@@ -78,8 +80,8 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 	private int lineColorHandle = 0;
 	private int mvpMatrixButtonsHandle = 0;
 
-	// Constants:
-	static final float kObjectScale = 20.0f;
+	// object scale:
+	static float kObjectScale = 1.0f;
 
 	private CubeObject cubeObject;
 
@@ -94,11 +96,12 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 	 */
 	private Matrix44F modelViewMatrix;
 
+	private Scene scene;
 	public UserDefinedTargetRenderer(UserDefinedTargets activity,
 			SampleApplicationSession session) {
 		mActivity = activity;
 		vuforiaAppSession = session;
-		setModelViewMatrix();
+		setModelViewMatrix();		
 	}
 
 	private void setModelViewMatrix() {
@@ -210,31 +213,50 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 				MarkerResult markerResult = (MarkerResult) (trackableResult);
 				Marker marker = (Marker) markerResult.getTrackable();
 				Matrix44F modelViewMatrix_Marker;
-				float[] data ;
+				float[] data;
 				float[] data2;
-				switch(marker.getMarkerId()){
+				switch (marker.getMarkerId()) {
 				case 0:
-					modelViewMatrix_Marker = Tool.convertPose2GLMatrix(trackableResult.getPose());	
+					//select
+					modelViewMatrix_Marker = Tool
+					.convertPose2GLMatrix(trackableResult.getPose());
 					data2 = modelViewMatrix_Marker.getData();
-				    data = modelViewMatrix.getData();
-					data[12]=data2[12];
-					data[13]=data2[13];
-					data[14]=data2[14];
+					float[] markerLocation={data2[12],data2[13],data2[14]};
+					scene.setSelectedPoints(markerLocation);
+					break;
+				case 1:
+					//translate
+					modelViewMatrix_Marker = Tool
+							.convertPose2GLMatrix(trackableResult.getPose());
+					data2 = modelViewMatrix_Marker.getData();
+					float[] position = {data2[12],data2[13],data2[14]};
+					scene.translateSelected(position);
+					break;
+				case 4:
+					//scale
+					kObjectScale =kObjectScale+10;
+					//translate
+					modelViewMatrix_Marker = Tool
+							.convertPose2GLMatrix(trackableResult.getPose());					
+					data = modelViewMatrix.getData();				
 					modelViewMatrix.setData(data);
 					break;
+				
 				case 5:
-					modelViewMatrix_Marker = Tool.convertPose2GLMatrix(trackableResult.getPose());		
+					//rotate
+					modelViewMatrix_Marker = Tool
+							.convertPose2GLMatrix(trackableResult.getPose());
 					data2 = modelViewMatrix_Marker.getData();
 					data = modelViewMatrix.getData();
-					data[0]=data2[0];
-					data[1]=data2[1];
-					data[2]=data2[2];
-					data[4]=data2[4];
-					data[5]=data2[5];
-					data[6]=data2[6];
-					data[8]=data2[8];
-					data[9]=data2[9];
-					data[10]=data2[10];
+					data[0] = data2[0];
+					data[1] = data2[1];
+					data[2] = data2[2];
+					data[4] = data2[4];
+					data[5] = data2[5];
+					data[6] = data2[6];
+					data[8] = data2[8];
+					data[9] = data2[9];
+					data[10] = data2[10];
 					modelViewMatrix.setData(data);
 					break;
 				}
@@ -257,11 +279,32 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 			 */
 
 		}
-		renderShapeInSceenCenter();
+		// renderShapeInSceenCenter();
+		renderLineInSceenCenter();
 		GLES20.glDisable(GLES20.GL_CULL_FACE);
 		GLES20.glDisable(GLES20.GL_DEPTH_TEST);
 		// GLES20.glDisable(GLES20.GL_BLEND);
 		Renderer.getInstance().end();
+	}
+
+	private void renderLineInSceenCenter() {
+		// Assumptions:
+		assert (textureIndex < mTextures.size());
+		Texture thisTexture = mTextures.get(textureIndex);		
+		/*
+		 * Matrix44F modelViewMatrix_Vuforia = Tool
+		 * .convertPose2GLMatrix(trackableResult.getPose());
+		 */
+		float[] modelViewMatrix = this.modelViewMatrix.getData();
+
+		float[] modelViewProjection = new float[16];
+	//	Matrix.translateM(modelViewMatrix, 0, 0.0f, 0.0f, kObjectScale);
+	//	Matrix.scaleM(modelViewMatrix, 0, kObjectScale, kObjectScale,
+	//			kObjectScale);
+		Matrix.multiplyMM(modelViewProjection, 0, vuforiaAppSession
+				.getProjectionMatrix().getData(), 0, modelViewMatrix, 0);
+		
+		scene.draw(modelViewProjection, shaderProgramID, mvpMatrixHandle,mTextures);
 	}
 
 	private void renderShapeInSceenCenter() {
@@ -456,8 +499,8 @@ public class UserDefinedTargetRenderer implements GLSurfaceView.Renderer {
 	private void initRendering() {
 		Log.d(LOGTAG, "initRendering");
 
-		cubeObject = new CubeObject();
-
+		//cubeObject = new CubeObject();
+		scene = new Scene(this);
 		// Define clear color
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 

@@ -174,16 +174,19 @@ public class UserDefinedTargets extends Activity implements
 	// We want to load specific textures from the APK, which we will later use
 	// for rendering.
 	private void loadTextures() {
-		mTextures.add(Texture.loadTextureFromApk("TextureTeapotBrass.png",
+
+		mTextures.add(Texture.loadTextureFromApk("TextureTeapotBlue.png",
+				getAssets()));
+		mTextures.add(Texture.loadTextureFromApk("SolidRed.jpg",
+				getAssets()));
+		/*mTextures.add(Texture.loadTextureFromApk("TextureTeapotBrass.png",
 				getAssets()));
 		mTextures.add(Texture.loadTextureFromApk("TextureTeapotRed.png",
-				getAssets()));
-		mTextures.add(Texture.loadTextureFromApk("TextureTeapotBlue.png",
 				getAssets()));
 		mTextures.add(Texture.loadTextureFromApk(
 				"VirtualButtons/TextureTeapotYellow.png", getAssets()));
 		mTextures.add(Texture.loadTextureFromApk(
-				"VirtualButtons/TextureTeapotGreen.png", getAssets()));
+				"VirtualButtons/TextureTeapotGreen.png", getAssets()));*/
 	}
 
 	// Called when the activity will start interacting with the user.
@@ -568,7 +571,7 @@ public class UserDefinedTargets extends Activity implements
 		if (markerTracker == null) {
 			return false;
 		}
-		dataSet = new Marker[2];
+		dataSet = new Marker[4];
 
 		dataSet[0] = markerTracker.createFrameMarker(5, "MarkerRotation",
 				new Vec2F(50, 50));		
@@ -577,10 +580,24 @@ public class UserDefinedTargets extends Activity implements
 			return false;
 		}
 		
-		dataSet[1] = markerTracker.createFrameMarker(0, "MarkerTranslation",
+		dataSet[1] = markerTracker.createFrameMarker(1, "MarkerScaling",
 				new Vec2F(50, 50));		
 		if (dataSet[1] == null) {
-			Log.e(LOGTAG, "Failed to create frame marker Rotation.");
+			Log.e(LOGTAG, "Failed to create frame marker Scaling.");
+			return false;
+		}
+		
+		dataSet[2] = markerTracker.createFrameMarker(4, "MarkerSelection",
+				new Vec2F(50, 50));		
+		if (dataSet[2] == null) {
+			Log.e(LOGTAG, "Failed to create frame marker Selection.");
+			return false;
+		}
+		
+		dataSet[3] = markerTracker.createFrameMarker(0, "MarkerTranslation",
+				new Vec2F(50, 50));		
+		if (dataSet[3] == null) {
+			Log.e(LOGTAG, "Failed to create frame marker Translation.");
 			return false;
 		}
 		return true;

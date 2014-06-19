@@ -307,6 +307,21 @@ public class SampleUtils
 		intersection = SampleMath.Vec3FAdd(lineStart, offset);
 		return intersection;
 	}
+	
+	/**
+	 * Calculates the distance between two points
+	 * @param p1
+	 * @param p2
+	 * @return
+	 */
+	public static float calculateDistance(float[] p1, float[] p2){
+		float deltaX = p1[0] - p2[0];
+		float deltaY = p1[1] - p2[1];
+		float deltaZ = p1[2] - p2[2];
+
+		float distance = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+		return distance;
+	}
 
 
 }
